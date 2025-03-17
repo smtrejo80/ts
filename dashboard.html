@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Tickets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBawHRALxfpTDUd4HeRpAZ-HTxwx-L3XAw",
+            authDomain: "tickets-de-servicio-9ccc8.firebaseapp.com",
+            projectId: "tickets-de-servicio-9ccc8",
+            storageBucket: "tickets-de-servicio-9ccc8.firebasestorage.app",
+            messagingSenderId: "263160188727",
+            appId: "1:263160188727:web:ed4f6436dc3105c97514b2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "auth.html";
+            } else {
+                document.getElementById("user-email").textContent = user.email;
+            }
+        });
+
+        document.getElementById("logout").addEventListener("click", async () => {
+            await signOut(auth);
+            window.location.href = "index.html";
+        });
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="w-full bg-blue-500 p-4 text-white shadow-lg flex justify-between items-center">
+        <h1 class="text-xl font-bold">Dashboard</h1>
+        <button id="logout" class="bg-red-500 px-4 py-2 rounded hover:bg-red-600">Cerrar sesión</button>
+    </nav>
+    
+    <main class="p-6">
+        <h2 class="text-2xl font-bold">Bienvenido, <span id="user-email" class="text-blue-500"></span></h2>
+        <p class="mt-2 text-gray-700">Aquí puedes gestionar tus tickets de servicio.</p>
+    </main>
+</body>
+</html>

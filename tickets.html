@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de Tickets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, updateDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBawHRALxfpTDUd4HeRpAZ-HTxwx-L3XAw",
+            authDomain: "tickets-de-servicio-9ccc8.firebaseapp.com",
+            projectId: "tickets-de-servicio-9ccc8",
+            storageBucket: "tickets-de-servicio-9ccc8.firebasestorage.app",
+            messagingSenderId: "263160188727",
+            appId: "1:263160188727:web:ed4f6436dc3105c97514b2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore();
+        const auth = getAuth();
+
+        const categories = [
+            "Soporte Técnico", "Facturación", "Acceso a Cuentas", "Errores del Sistema", "Consultas Generales", "Solicitud de Mejora", "Capacitación", "Problemas de Red", "Hardware", "Seguridad"
+        ];
+
+        async function loadTickets() {
+            const ticketsRef = collection(db, "tickets");
+            const snapshot = await getDocs(ticketsRef);
+            const ticketsContainer = document.getElementById("tickets-list");
+            ticketsContainer.innerHTML = "";
+            snapshot.forEach(doc => {
+                const ticket = doc.data();
+                const ticketElement = document.createElement("div");
+                ticketElement.classList = "p-4 bg-white shadow-lg rounded-lg mb-4";
+                ticketElement.innerHTML = `
+                    <h3 class="text-xl font-bold">${ticket.title}</h3>
+                    <p>${ticket.description}</p>
+                    <p class="font-semibold">Prioridad: ${ticket.priority}</p>
+                    <p class="font-semibold">Estado: <span class="text-blue-500">${ticket.status}</span></p>
+                    <p class="font-semibold">Categoría: ${ticket.category}</p>
+                    <p class="text-sm text-gray-600">Fecha de Registro: ${ticket.date}</p>
+                    <p class="text-sm text-gray-600">Agente Asignado: ${ticket.agent || "No asignado"}</p>
+                    <label class="flex items-center mt-2">
+                        <input type="checkbox" ${ticket.resolved ? "checked" : ""} onchange="updateResolution('${doc.id}', this.checked)">
+                        <span class="ml-2">Marcar como resuelto</span>
+                    </label>
+                `;
+                ticketsContainer.appendChild(ticketElement);
+            });
+        }
+
+        async function updateStatus(ticketId, newStatus) {
+            const ticketRef = doc(db, "tickets", ticketId);
+            await updateDoc(ticketRef, { status: newStatus });
+            alert("Estado actualizado");
+            loadTickets();
+        }
+
+        async function updateResolution(ticketId, resolved) {
+            const ticketRef = doc(db, "tickets", ticketId);
+            await updateDoc(ticketRef, { resolved: resolved });
+            alert("Ticket actualizado");
+            loadTickets();
+        }
+
+        async function createFirstTicket() {
+            const ticketsRef = collection(db, "tickets");
+            const snapshot = await getDocs(ticketsRef);
+            if (snapshot.empty) {
+                const firstTicketRef = doc(db, "tickets", "ticket1");
+                await setDoc(firstTicketRef, {
+                    date: new Date().toLocaleString(),
+                    id: "ticket1",
+                    clientName: "Primer Cliente",
+                    title: "Ejemplo de Ticket",
+                    description: "Este es el primer ticket de prueba.",
+                    priority: "Alta",
+                    agent: "No asignado",
+                    status: "Abierto",
+                    category: "Soporte Técnico",
+                    adminComments: "Pendiente de revisión",
+                    resolved: false
+                });
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "auth.html";
+            } else {
+                createFirstTicket();
+                loadTickets();
+            }
+        });
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+    <nav class="w-full bg-blue-500 p-4 text-white text-center shadow-lg">
+        <h1 class="text-2xl font-bold">Administración de Tickets</h1>
+    </nav>
+    
+    <main class="max-w-2xl mx-auto mt-6">
+        <div id="tickets-list"></div>
+    </main>
+</body>
+</html>
