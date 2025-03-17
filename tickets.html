@@ -24,21 +24,7 @@
         const db = getFirestore();
         const auth = getAuth();
 
-        const categories = [
-            "Soporte Técnico", "Facturación", "Acceso a Cuentas", "Errores del Sistema", "Consultas Generales", "Solicitud de Mejora", "Capacitación", "Problemas de Red", "Hardware", "Seguridad"
-        ];
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const categorySelect = document.getElementById("category");
-            categories.forEach(cat => {
-                let option = document.createElement("option");
-                option.value = cat;
-                option.textContent = cat;
-                categorySelect.appendChild(option);
-            });
-        });
-
-        async function createTicket() {
+        window.createTicket = async function() {
             const title = document.getElementById("title").value;
             const description = document.getElementById("description").value;
             const priority = document.getElementById("priority").value;
@@ -70,7 +56,7 @@
 
             alert("Ticket creado exitosamente");
             document.getElementById("ticket-form").reset();
-        }
+        };
 
         onAuthStateChanged(auth, (user) => {
             if (!user) {
@@ -100,7 +86,18 @@
             </select>
             
             <label class="block text-gray-700">Categoría</label>
-            <select id="category" class="w-full px-4 py-2 border rounded-lg focus:outline-none"></select>
+            <select id="category" class="w-full px-4 py-2 border rounded-lg focus:outline-none">
+                <option value="Soporte Técnico">Soporte Técnico</option>
+                <option value="Facturación">Facturación</option>
+                <option value="Acceso a Cuentas">Acceso a Cuentas</option>
+                <option value="Errores del Sistema">Errores del Sistema</option>
+                <option value="Consultas Generales">Consultas Generales</option>
+                <option value="Solicitud de Mejora">Solicitud de Mejora</option>
+                <option value="Capacitación">Capacitación</option>
+                <option value="Problemas de Red">Problemas de Red</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Seguridad">Seguridad</option>
+            </select>
             
             <button type="button" onclick="createTicket()" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600">Crear Ticket</button>
         </form>
