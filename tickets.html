@@ -8,7 +8,7 @@
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
         
         const firebaseConfig = {
@@ -28,6 +28,16 @@
             "Soporte Técnico", "Facturación", "Acceso a Cuentas", "Errores del Sistema", "Consultas Generales", "Solicitud de Mejora", "Capacitación", "Problemas de Red", "Hardware", "Seguridad"
         ];
 
+        document.addEventListener("DOMContentLoaded", () => {
+            const categorySelect = document.getElementById("category");
+            categories.forEach(cat => {
+                let option = document.createElement("option");
+                option.value = cat;
+                option.textContent = cat;
+                categorySelect.appendChild(option);
+            });
+        });
+
         async function createTicket() {
             const title = document.getElementById("title").value;
             const description = document.getElementById("description").value;
@@ -37,6 +47,11 @@
 
             if (!user) {
                 alert("Debes estar autenticado para crear un ticket");
+                return;
+            }
+
+            if (!title || !description) {
+                alert("Por favor, completa todos los campos");
                 return;
             }
 
@@ -71,20 +86,22 @@
     
     <main class="max-w-2xl mx-auto mt-6">
         <form id="ticket-form" class="bg-white p-6 shadow-lg rounded-lg space-y-4">
+            <label class="block text-gray-700">Título del Ticket</label>
             <input id="title" type="text" placeholder="Título del Ticket" class="w-full px-4 py-2 border rounded-lg focus:outline-none">
+            
+            <label class="block text-gray-700">Descripción del Problema</label>
             <textarea id="description" placeholder="Descripción del Problema" class="w-full px-4 py-2 border rounded-lg focus:outline-none"></textarea>
+            
+            <label class="block text-gray-700">Nivel de Prioridad</label>
             <select id="priority" class="w-full px-4 py-2 border rounded-lg focus:outline-none">
                 <option value="Baja">Baja</option>
                 <option value="Media">Media</option>
                 <option value="Alta">Alta</option>
             </select>
-            <select id="category" class="w-full px-4 py-2 border rounded-lg focus:outline-none">
-                <script>
-                    categories.forEach(cat => {
-                        document.write(`<option value="${cat}">${cat}</option>`);
-                    });
-                </script>
-            </select>
+            
+            <label class="block text-gray-700">Categoría</label>
+            <select id="category" class="w-full px-4 py-2 border rounded-lg focus:outline-none"></select>
+            
             <button type="button" onclick="createTicket()" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600">Crear Ticket</button>
         </form>
     </main>
