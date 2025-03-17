@@ -8,7 +8,7 @@
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, updateDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
         
         const firebaseConfig = {
@@ -28,73 +28,38 @@
             "Soporte Técnico", "Facturación", "Acceso a Cuentas", "Errores del Sistema", "Consultas Generales", "Solicitud de Mejora", "Capacitación", "Problemas de Red", "Hardware", "Seguridad"
         ];
 
-        async function loadTickets() {
-            const ticketsRef = collection(db, "tickets");
-            const snapshot = await getDocs(ticketsRef);
-            const ticketsContainer = document.getElementById("tickets-list");
-            ticketsContainer.innerHTML = "";
-            snapshot.forEach(doc => {
-                const ticket = doc.data();
-                const ticketElement = document.createElement("div");
-                ticketElement.classList = "p-4 bg-white shadow-lg rounded-lg mb-4";
-                ticketElement.innerHTML = `
-                    <h3 class="text-xl font-bold">${ticket.title}</h3>
-                    <p>${ticket.description}</p>
-                    <p class="font-semibold">Prioridad: ${ticket.priority}</p>
-                    <p class="font-semibold">Estado: <span class="text-blue-500">${ticket.status}</span></p>
-                    <p class="font-semibold">Categoría: ${ticket.category}</p>
-                    <p class="text-sm text-gray-600">Fecha de Registro: ${ticket.date}</p>
-                    <p class="text-sm text-gray-600">Agente Asignado: ${ticket.agent || "No asignado"}</p>
-                    <label class="flex items-center mt-2">
-                        <input type="checkbox" ${ticket.resolved ? "checked" : ""} onchange="updateResolution('${doc.id}', this.checked)">
-                        <span class="ml-2">Marcar como resuelto</span>
-                    </label>
-                `;
-                ticketsContainer.appendChild(ticketElement);
-            });
-        }
+        async function createTicket() {
+            const title = document.getElementById("title").value;
+            const description = document.getElementById("description").value;
+            const priority = document.getElementById("priority").value;
+            const category = document.getElementById("category").value;
+            const user = auth.currentUser;
 
-        async function updateStatus(ticketId, newStatus) {
-            const ticketRef = doc(db, "tickets", ticketId);
-            await updateDoc(ticketRef, { status: newStatus });
-            alert("Estado actualizado");
-            loadTickets();
-        }
-
-        async function updateResolution(ticketId, resolved) {
-            const ticketRef = doc(db, "tickets", ticketId);
-            await updateDoc(ticketRef, { resolved: resolved });
-            alert("Ticket actualizado");
-            loadTickets();
-        }
-
-        async function createFirstTicket() {
-            const ticketsRef = collection(db, "tickets");
-            const snapshot = await getDocs(ticketsRef);
-            if (snapshot.empty) {
-                const firstTicketRef = doc(db, "tickets", "ticket1");
-                await setDoc(firstTicketRef, {
-                    date: new Date().toLocaleString(),
-                    id: "ticket1",
-                    clientName: "Primer Cliente",
-                    title: "Ejemplo de Ticket",
-                    description: "Este es el primer ticket de prueba.",
-                    priority: "Alta",
-                    agent: "No asignado",
-                    status: "Abierto",
-                    category: "Soporte Técnico",
-                    adminComments: "Pendiente de revisión",
-                    resolved: false
-                });
+            if (!user) {
+                alert("Debes estar autenticado para crear un ticket");
+                return;
             }
+
+            await addDoc(collection(db, "tickets"), {
+                date: new Date().toLocaleString(),
+                clientName: user.displayName || "Cliente Anónimo",
+                title,
+                description,
+                priority,
+                agent: "No asignado",
+                status: "Abierto",
+                category,
+                adminComments: "Pendiente de revisión",
+                resolved: false
+            });
+
+            alert("Ticket creado exitosamente");
+            document.getElementById("ticket-form").reset();
         }
 
         onAuthStateChanged(auth, (user) => {
             if (!user) {
                 window.location.href = "auth.html";
-            } else {
-                createFirstTicket();
-                loadTickets();
             }
         });
     </script>
@@ -105,7 +70,23 @@
     </nav>
     
     <main class="max-w-2xl mx-auto mt-6">
-        <div id="tickets-list"></div>
+        <form id="ticket-form" class="bg-white p-6 shadow-lg rounded-lg space-y-4">
+            <input id="title" type="text" placeholder="Título del Ticket" class="w-full px-4 py-2 border rounded-lg focus:outline-none">
+            <textarea id="description" placeholder="Descripción del Problema" class="w-full px-4 py-2 border rounded-lg focus:outline-none"></textarea>
+            <select id="priority" class="w-full px-4 py-2 border rounded-lg focus:outline-none">
+                <option value="Baja">Baja</option>
+                <option value="Media">Media</option>
+                <option value="Alta">Alta</option>
+            </select>
+            <select id="category" class="w-full px-4 py-2 border rounded-lg focus:outline-none">
+                <script>
+                    categories.forEach(cat => {
+                        document.write(`<option value="${cat}">${cat}</option>`);
+                    });
+                </script>
+            </select>
+            <button type="button" onclick="createTicket()" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600">Crear Ticket</button>
+        </form>
     </main>
 </body>
 </html>
